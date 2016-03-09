@@ -502,9 +502,9 @@ var resizePizzas = function (size) {
         var randomPizzaContainer = document.getElementsByClassName("randomPizzaContainer"); //save container to variable
         // before loop
 
-        randomPizzaContainer.forEach(function (pizza) {
-            pizza.style.width = newWidth + '%'; //assign width by percent!
-        });
+        for (var i = 0; i < randomPizzaContainer.length; i++) {
+            randomPizzaContainer[i].style.width = newWidth + '%'; //assign width by percent!
+        }
     }
 
     changePizzaSizes(size);
@@ -554,9 +554,14 @@ function updatePositions() {
 
     var items = document.getElementsByClassName('mover');
     var scrollPos = document.body.scrollTop;  //save scroll position to variable before loop to avoid FSL
-    for (var i = 0; i < items.length; i++) {
-        var phase = Math.sin((scrollPos / 1250) + (i % 5));
-        items[i].style.left = items[i].basicLeft + 100 * phase + 'px';
+    var phase = [];
+
+    for (var i = 0; i < 5; i++) {
+        phase.push(Math.sin(scrollPos / 1250 + i) * 100);
+    }
+
+    for (var i = 0, max = items.length; i < max; i++) {
+        items[i].style.left = items[i].basicLeft + phase[i % 5] + 'px';
     }
 
     // User Timing API to the rescue again. Seriously, it's worth learning.
@@ -577,14 +582,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var cols = 8;
     var s = 256;
     var screenHeight = window.screen.height;
-    console.log(screenHeight);
-    var rows = Math.floor(screenHeight / s);
+    var rows = Math.floor(screenHeight / s); //calculating rows based on screen height
     var pizzaCount = rows * cols;
-    console.log(pizzaCount);
-    
+
     var movingPizzas = document.getElementById('movingPizzas1');
+    var elem;
     for (var i = 0; i < pizzaCount; i++) {
-        var elem = document.createElement('img');
+        elem = document.createElement('img');
         elem.className = 'mover';
         elem.src = "images/pizza.png";
         elem.style.height = "100px";
