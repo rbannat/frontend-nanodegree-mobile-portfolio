@@ -39,7 +39,7 @@ const reload = browserSync.reload;
 
 // Lint JavaScript
 gulp.task('lint', () =>
-  gulp.src('app/scripts/**/*.js')
+  gulp.src('app/js/**/*.js')
     .pipe($.eslint())
     .pipe($.eslint.format())
     .pipe($.if(!browserSync.active, $.eslint.failOnError()))
@@ -47,12 +47,12 @@ gulp.task('lint', () =>
 
 // Optimize images
 gulp.task('images', () =>
-  gulp.src('app/images/**/*')
+  gulp.src('app/img/**/*')
     .pipe($.cache($.imagemin({
       progressive: true,
       interlaced: true
     })))
-    .pipe(gulp.dest('dist/images'))
+    .pipe(gulp.dest('dist/img'))
     .pipe($.size({title: 'images'}))
 );
 
@@ -61,11 +61,22 @@ gulp.task('copy', () =>
   gulp.src([
     'app/*',
     '!app/*.html',
-    'node_modules/apache-server-configs/dist/.htaccess'
+    'node_modules/apache-server-configs/dist/.htaccess',
+      'app/views/**/*'
   ], {
     dot: true
   }).pipe(gulp.dest('dist'))
     .pipe($.size({title: 'copy'}))
+);
+
+// Copy all files at the root level (app)
+gulp.task('copyViews', () =>
+gulp.src([
+  'app/views/**/*',
+], {
+  dot: true
+}).pipe(gulp.dest('dist/views'))
+    .pipe($.size({title: 'copyViews'}))
 );
 
 // Compile and automatically prefix stylesheets
@@ -84,8 +95,8 @@ gulp.task('styles', () => {
 
   // For best performance, don't add Sass partials to `gulp.src`
   return gulp.src([
-    'app/styles/**/*.scss',
-    'app/styles/**/*.css'
+    'app/css/**/*.scss',
+    'app/css/**/*.css'
   ])
     .pipe($.newer('.tmp/styles'))
     .pipe($.sourcemaps.init())
@@ -98,7 +109,7 @@ gulp.task('styles', () => {
     .pipe($.if('*.css', $.cssnano()))
     .pipe($.size({title: 'styles'}))
     .pipe($.sourcemaps.write('./'))
-    .pipe(gulp.dest('dist/styles'));
+    .pipe(gulp.dest('dist/css'));
 });
 
 // Concatenate and minify JavaScript. Optionally transpiles ES2015 code to ES5.
@@ -109,7 +120,7 @@ gulp.task('scripts', () =>
       // Note: Since we are not using useref in the scripts build pipeline,
       //       you need to explicitly list your scripts here in the right order
       //       to be correctly concatenated
-      './app/scripts/main.js'
+      './app/js/perfmatters.js'
       // Other scripts
     ])
       .pipe($.newer('.tmp/scripts'))
@@ -117,12 +128,12 @@ gulp.task('scripts', () =>
       .pipe($.babel())
       .pipe($.sourcemaps.write())
       .pipe(gulp.dest('.tmp/scripts'))
-      .pipe($.concat('main.min.js'))
+      .pipe($.concat('perfmatters.js'))
       .pipe($.uglify({preserveComments: 'some'}))
       // Output files
       .pipe($.size({title: 'scripts'}))
       .pipe($.sourcemaps.write('.'))
-      .pipe(gulp.dest('dist/scripts'))
+      .pipe(gulp.dest('dist/js'))
 );
 
 // Scan your HTML for assets & optimize them
@@ -179,9 +190,9 @@ gulp.task('serve', ['scripts', 'styles'], () => {
   });
 
   gulp.watch(['app/**/*.html'], reload);
-  gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
-  gulp.watch(['app/scripts/**/*.js'], ['lint', 'scripts']);
-  gulp.watch(['app/images/**/*'], reload);
+  gulp.watch(['app/css/**/*.{scss,css}'], ['styles', reload]);
+  gulp.watch(['app/js/**/*.js'], ['scripts']);
+  gulp.watch(['app/img/**/*'], reload);
 });
 
 // Build and serve the output from the dist build
@@ -204,7 +215,7 @@ gulp.task('serve:dist', ['default'], () =>
 gulp.task('default', ['clean'], cb =>
   runSequence(
     'styles',
-    ['lint', 'html', 'scripts', 'images', 'copy'],
+    ['html', 'scripts', 'images', 'copy', 'copyViews'],
     'generate-service-worker',
     cb
   )
